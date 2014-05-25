@@ -1,0 +1,16 @@
+{
+  "name": "SiblingMultiplayer",
+  "version": "0.0.0",
+  "description": "SiblingMultiplayer",
+  "main": "app.js",
+  "author": {
+    "name": "christopher.witcher",
+    "email": ""
+  },
+  "dependencies": {
+    "express": "3.4.4",
+    "jade": "*",
+    "socket.io": "*",
+    "stylus": "*"
+  }
+}
