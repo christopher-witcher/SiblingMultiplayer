@@ -3,7 +3,7 @@ var messages = [];
     //Initialize Asset manager 
 var ASSET_MANAGER = new AssetManager();
 var gameboard = new GameBoard();
-var heroSpriteSheet = "./img/runboySprite.png";
+var heroSpriteSheet = "/images/runboySprite.png";
 //var webAddress = "http://siblingrivalry.azurewebsites.net";
 var webAddress = "http://localhost:4815";
     //var io = require('socket.io');
@@ -15,35 +15,61 @@ var socket = io.connect(webAddress);
 var gameWidth = 10000;
 var gameHeight = 2000;
 
-window.onload 
-var tempLoad = function () {
-    var field = document.getElementById("field");
+var getUserName; 
+var player;
+var gameEngine;
+
+window.onload = function () {
+    player = new RunBoy(canvasWidth);
+    var status = document.getElementById("status");
     var canvas = document.getElementById("world");
     canvas.focus();
     var ctx = canvas.getContext("2d"); //Go To Canvas in lobby.jade fil
     var content = document.getElementById("content");
-    var name = document.getElementById("name");
-    var username = name.innerHTML;
-
+    var name = document.getElementById("nameBox").innerHTML;
+    var joinBtn = document.getElementById("join");
+    joinBtn.addEventListener('click', function (e) {
+        socket.name = name;
+        socket.emit('join', {player: player, name: name});
+    }, false);
+    
     var gameEngine = new GameEngine();
-    var player = new RunBoy(canvasWidth);
-    var viewPort = new ViewPort(player, canvasWidth, canvasHeight, gameWidth, gameHeight);
+    
+    //var viewPort = new ViewPort(player, canvasWidth, canvasHeight, gameWidth, gameHeight);
+    //socket.emit('init');
 
-    socket.on('join', function (data) {
-        console.log(username);
-        socket.emit(init, username);
+    //socket.on('join', function (data) {
+    //    console.log("Joined on Client");
+    //    status.innerHTML = "Joined Success " + name;
+    //    //gameEngine.gameboard = data;
+    //    //gameEngine.gameboard.addPlayer(player, name);
+    //    socket.emit('joined', gameEngine.gameboard);
+    //    });
+
+    socket.on('waiting', function (data) {
+        status.innerHTML = data.message;
+    });
+
+    socket.on('ready', function (data) {
+        ASSET_MANAGER.downloadAll(function () {
+            gameEngine.init(ctx, gameboard);
+            gameEngine.start();
         });
+        status.innerHTML = data.message;
+
+    });
 
     socket.on('start', function (data) {
-        socket.username = username;
-        socket.player = player;
-        socket.emit('init', username);
-        socket.emit('init', player);
+        status.innerHTML = "Welcome to Sibling Rivalry<br />"
+                     + "Please enter your name and click join";
+
+        socket.name = name;
+       //Download All Files to client
+    ASSET_MANAGER.queueDownload(heroSpriteSheet);
     });
 
     socket.on('sync', function (data) {
-        gameEngine.gameboard.board = data.board;
-        //gameEngine.gameboard.black = data.black;
+        gameEngine.gameboard.board = data;
     });
 
     socket.on('click', function (data) {
@@ -54,12 +80,8 @@ var tempLoad = function () {
         gameEngine.gameboard.move(data.keydown);
     });
 
-    //Download All Files to client
-    ASSET_MANAGER.queueDownload(heroSpriteSheet);
-    ASSET_MANAGER.downloadAll(function () {
-        gameEngine.init(ctx, gameboard);
-        gameEngine.start();
-    });
+    
+   
 }
 
 var canvasWidth = 1250;
@@ -87,45 +109,3 @@ Viewport.prototype.update = function () {
 };
 
 
-
-
-
-    ////////////
-function AssetManager() {
-    this.successCount = 0;
-    this.errorCount = 0;
-    this.cache = [];
-    this.downloadQueue = [];
-}
-
-AssetManager.prototype.queueDownload = function (path) {
-    //console.log(path.toString());
-    this.downloadQueue.push(path);
-}
-
-AssetManager.prototype.isDone = function () {
-    return (this.downloadQueue.length == this.successCount + this.errorCount);
-}
-AssetManager.prototype.downloadAll = function (callback) {
-    for (var i = 0; i < this.downloadQueue.length; i++) {
-        var path = this.downloadQueue[i];
-        var img = new Image();
-        var that = this;
-        img.addEventListener("load", function () {
-            //console.log("dun: " + this.src.toString());
-            that.successCount += 1;
-            if (that.isDone()) { callback(); }
-        });
-        img.addEventListener("error", function () {
-            that.errorCount += 1;
-            if (that.isDone()) { callback(); }
-        });
-        img.src = path;
-        this.cache[path] = img;
-    }
-}
-
-AssetManager.prototype.getAsset = function (path) {
-    //console.log(path.toString());
-    return this.cache[path];
-}

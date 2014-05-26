@@ -35,11 +35,13 @@
     <Compile Include="public\javascripts\client.js" />
     <Compile Include="public\javascripts\gameboard.js" />
     <Compile Include="public\javascripts\gameengine.js" />
+    <Compile Include="public\javascripts\player.js" />
     <Compile Include="routes\index.js" />
     <Compile Include="routes\user.js" />
     <Content Include="package.json" />
     <Content Include="public\stylesheets\style.styl" />
     <Content Include="README.md" />
+    <Content Include="runboySprite.png" />
     <Content Include="views\index.jade" />
     <Content Include="views\layout.jade" />
   </ItemGroup>
